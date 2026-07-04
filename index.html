@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aneri Bhavsar - AI Persona Chatbot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Marked Markdown Parser -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        /* Exact color matches from your portfolio screenshot */
+        body { background-color: #f4f4f2; color: #1e293b; font-family: ui-sans-serif, system-ui, sans-serif; }
+        .portfolio-btn { background-color: #60728c; color: white; }
+        .portfolio-btn:hover { background-color: #4b5a70; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 3px; }
+
+        /* Styles for Markdown content in assistant responses */
+        .chat-bubble-assistant ul { list-style-type: disc; margin-left: 1.25rem; margin-bottom: 0.75rem; }
+        .chat-bubble-assistant ol { list-style-type: decimal; margin-left: 1.25rem; margin-bottom: 0.75rem; }
+        .chat-bubble-assistant p { margin-bottom: 0.5rem; }
+        .chat-bubble-assistant table { width: 100%; border-collapse: collapse; margin: 0.75rem 0; font-size: 0.875rem; }
+        .chat-bubble-assistant th, .chat-bubble-assistant td { border: 1px solid #e2e8f0; padding: 0.5rem 0.75rem; text-align: left; }
+        .chat-bubble-assistant th { background-color: #f8fafc; font-weight: 600; }
+    </style>
+</head>
+<body class="flex flex-col h-screen max-w-4xl mx-auto px-6 py-6">
+
+    <header class="flex justify-between items-center mb-8 border-b border-neutral-200 pb-4">
+        <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 rounded bg-slate-300 text-slate-700 flex items-center justify-center font-semibold text-xs tracking-wide">AB</div>
+            <h1 class="text-xl font-medium tracking-tight text-slate-800">Aneri Bhavsar</h1>
+        </div>
+        <nav class="flex space-x-6 text-slate-600 text-sm font-medium">
+            <a href="https://aneribhavsar.in/" target="_blank" class="hover:text-slate-900 transition">Home</a>
+            <a href="mailto:aneribhavsar0128@gmail.com" class="hover:text-slate-900 transition"><i class="fa-regular fa-envelope text-lg"></i></a>
+        </nav>
+    </header>
+
+    <div class="mb-6">
+        <h2 class="text-xl text-slate-800 font-semibold tracking-tight">Chat with my AI Assistant</h2>
+        <p class="text-sm text-slate-500 mt-1">Ask questions about my work in Computer Vision, Deep Learning, and RAG architectures.</p>
+    </div>
+
+    <main class="flex-1 bg-white border border-slate-200 rounded-xl p-6 overflow-y-auto mb-4 custom-scrollbar space-y-4 shadow-sm" id="chat-window">
+        <div class="flex items-start space-x-3 max-w-[85%]">
+            <div class="bg-slate-100 text-slate-800 p-4 rounded-2xl rounded-tl-none text-sm leading-relaxed border border-slate-200/60">
+                Hi! I'm Aneri's AI persona. Ask me anything about her professional experience, AI engineering background, or her computer vision and deep learning projects. I'll be happy to assist you!
+            </div>
+        </div>
+    </main>
+
+    <div class="flex flex-wrap gap-2 mb-4 overflow-x-auto pb-1" id="suggestion-container">
+        <button onclick="sendQuickMessage('What is your experience?')" class="bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs py-2 px-4 rounded-full border border-slate-200 transition shadow-sm whitespace-nowrap">
+            What is your experience?
+        </button>
+        <button onclick="sendQuickMessage('What is your notice period?')" class="bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs py-2 px-4 rounded-full border border-slate-200 transition shadow-sm whitespace-nowrap">
+            Notice period
+        </button>
+        <button onclick="sendQuickMessage('What are your skills?')" class="bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs py-2 px-4 rounded-full border border-slate-200 transition shadow-sm whitespace-nowrap">
+            Core skills
+        </button>
+        <button onclick="sendQuickMessage('What projects have you worked on?')" class="bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs py-2 px-4 rounded-full border border-slate-200 transition shadow-sm whitespace-nowrap">
+            Tell me about your projects
+        </button>
+    </div>
+
+    <footer class="space-y-3">
+        <form id="chat-form" class="flex items-center space-x-2 bg-white border border-slate-200 rounded-xl p-2 focus-within:border-slate-400 transition shadow-sm">
+            <input type="text" id="user-input" placeholder="Type a message..." autocomplete="off" class="flex-1 bg-transparent border-none outline-none text-sm text-slate-800 px-3 placeholder-slate-400" required />
+            <button type="submit" class="w-10 h-10 rounded-lg portfolio-btn flex items-center justify-center transition shadow-sm">
+                <i class="fa-solid fa-arrow-up text-sm"></i>
+            </button>
+        </form>
+        
+        <p class="text-center text-[11px] text-slate-400 tracking-wide font-light">
+            Everyone makes mistakes, including this AI powered by LangChain & Groq. Make sure to double-check important information.
+        </p>
+    </footer>
+
+    <script>
+        const chatWindow = document.getElementById('chat-window');
+        const chatForm = document.getElementById('chat-form');
+        const userInput = document.getElementById('user-input');
+        
+        const API_URL = "/api/chat"; 
+
+        function appendMessage(text, isUser = false) {
+            const wrapper = document.createElement('div');
+            wrapper.className = `flex items-start space-x-3 ${isUser ? 'justify-end' : 'justify-start'} max-w-full`;
+            
+            const msgBubble = document.createElement('div');
+            msgBubble.className = isUser 
+                ? 'bg-slate-700 text-white p-4 rounded-2xl rounded-tr-none text-sm max-w-[85%] shadow-sm'
+                : 'bg-slate-100 text-slate-800 p-4 rounded-2xl rounded-tl-none text-sm max-w-[85%] border border-slate-200/60 shadow-sm leading-relaxed chat-bubble-assistant';
+            
+            if (isUser) {
+                msgBubble.textContent = text;
+            } else {
+                msgBubble.innerHTML = marked.parse(text);
+            }
+            
+            wrapper.appendChild(msgBubble);
+            chatWindow.appendChild(wrapper);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        async function handleMessageSubmission(messageText) {
+            if (!messageText.trim()) return;
+            
+            appendMessage(messageText, true);
+            userInput.value = '';
+
+            // Loading state
+            const loadingWrapper = document.createElement('div');
+            loadingWrapper.className = "flex items-start space-x-3 justify-start";
+            loadingWrapper.innerHTML = `<div id="loading-bubble" class="bg-slate-100 text-slate-400 p-4 rounded-2xl rounded-tl-none text-sm border border-slate-200/60 shadow-sm italic animate-pulse">Thinking...</div>`;
+            chatWindow.appendChild(loadingWrapper);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: messageText })
+                });
+
+                const data = await response.json();
+                document.getElementById('loading-bubble').parentNode.remove();
+
+                if (response.ok) {
+                    appendMessage(data.response, false);
+                } else {
+                    appendMessage("Oops! My internal systems hit a snag. Please try asking again shortly.", false);
+                }
+            } catch (error) {
+                document.getElementById('loading-bubble').parentNode.remove();
+                appendMessage("Network error: Unable to communicate with the AI backend. Verify your server script is running.", false);
+                console.error("Fetch Exception:", error);
+            }
+        }
+
+        chatForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            handleMessageSubmission(userInput.value);
+        });
+
+        function sendQuickMessage(phraseValue) {
+            handleMessageSubmission(phraseValue);
+        }
+    </script>
+</body>
+</html>
