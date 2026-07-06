@@ -6,10 +6,7 @@
 __pycache__/
 *.py[cod]
 
-# ChromaDB local data
-chroma_db/
-
-# Data / documents
+# Data / documents (PDFs stay local, not in repo)
 data/
 
 ### AL ###

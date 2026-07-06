@@ -1,17 +1,10 @@
 import sys
 from types import ModuleType
-
-# Trick Windows into thinking the Linux 'pwd' module exists in memory
 if sys.platform == "win32":
     mock_pwd = ModuleType("pwd")
-    # Add dummy functions that the internal LangChain files expect to find
     mock_pwd.getpwuid = lambda uid: None
     mock_pwd.getpwnam = lambda name: None
     sys.modules["pwd"] = mock_pwd
-
-# -------------------------------------------------------------
-# Now it is safe to import LangChain elements without crashes!
-# -------------------------------------------------------------
 import os
 from langchain_community.document_loaders.pdf import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter

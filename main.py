@@ -1,7 +1,7 @@
 import sys
 from types import ModuleType
 
-# 1. Apply the bulletproof Windows patch before any LangChain imports
+# Windows-only patch — keeps local dev working without breaking Render (Linux ignores this)
 if sys.platform == "win32":
     mock_pwd = ModuleType("pwd")
     mock_pwd.getpwuid = lambda uid: None
@@ -27,12 +27,18 @@ from langchain_core.output_parsers import StrOutputParser
 
 app = FastAPI(title="Aneri AI Portfolio - Groq Engine")
 
-# Configure CORS security rules so your frontend website can talk to this API
+# Allow requests from the live portfolio and local dev
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "https://aneribhavsar.in",
+        "https://www.aneribhavsar.in",
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "http://127.0.0.1:5500",
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["POST", "GET"],
     allow_headers=["*"],
 )
 
@@ -89,14 +95,12 @@ Rules for Answers:
 5. If asked about notice period: State clearly and briefly that it is 1 month.
 6. If asked about projects or skills: List them using short, high-impact bullet points with a brief 1-sentence description each.
 7. Rely on the profile details above and the retrieved context below to answer accurately.
-
 Retrieved Context:
 {context}
 
 User Question: {input}
 Answer:
 """
-
 prompt = ChatPromptTemplate.from_template(SYSTEM_PROMPT)
 
 # Helper function to format the retrieved documents into text
@@ -126,5 +130,5 @@ async def chat_handler(payload: UserInputPayload):
 
 if __name__ == "__main__":
     import uvicorn
-    # Change "main.py:app" to "main:app" so Uvicorn can import the module correctly
-    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=(sys.platform == "win32"))
