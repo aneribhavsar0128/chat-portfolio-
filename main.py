@@ -25,7 +25,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
 
-app = FastAPI(title="Aneri AI Portfolio - Groq Engine")
+app = FastAPI(title="Aneri AI Portfolio")
 
 # Allow requests from the live portfolio and local dev
 app.add_middleware(
