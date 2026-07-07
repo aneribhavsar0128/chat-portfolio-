@@ -128,6 +128,10 @@ async def chat_handler(payload: UserInputPayload):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/healthzz")
+async def health_check():
+    return {"status": "ok"}
+
 if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 8000))
